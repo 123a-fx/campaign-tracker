@@ -6,7 +6,7 @@ Frontend: React
 Backend: Flask
 Database: MongoDB
 
-## Quick start (backend)
+## Quick start (backend):
 1. Create a Python virtualenv and activate it.
 2. Install dependencies:
    ```
