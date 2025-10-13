@@ -16,7 +16,8 @@ Database: MongoDB
    ```
    MONGO_URI=mongodb://localhost:27017/
    ```
-4. Run:
+ ## Quick start (Backend)
+4.  From `backend/` Run:
    ```
    cd backend
    venc/Scripts\activate
@@ -25,7 +26,7 @@ Database: MongoDB
 Backend will run on http://127.0.0.1:5000
 
 ## Quick start (frontend)
-1. From `frontend/` run:
+5. From `frontend/` Run:
    ```
    npm install
    npm start
@@ -34,4 +35,4 @@ Backend will run on http://127.0.0.1:5000
    Login with
    Username:admin
    Password:1234
-3. The React app expects the Flask API at http://127.0.0.1:5000/api
+
