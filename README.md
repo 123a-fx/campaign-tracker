@@ -17,7 +17,7 @@ Database: MongoDB
    MONGO_URI=mongodb://localhost:27017/
    ```
  ## Quick start (Backend)
-4.  From `backend/` Run:
+4.  From `backend` Run:
    ```
    cd backend
    venc/Scripts\activate
@@ -26,7 +26,7 @@ Database: MongoDB
 Backend will run on http://127.0.0.1:5000
 
 ## Quick start (frontend)
-5. From `frontend/` Run:
+5. From `frontend` Run:
    ```
    npm install
    npm start
