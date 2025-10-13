@@ -18,6 +18,8 @@ Database: MongoDB
    ```
 4. Run:
    ```
+   cd backend
+   venc/Scripts\activate
    python app.py
    ```
 Backend will run on http://127.0.0.1:5000
