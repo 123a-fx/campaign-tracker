@@ -28,4 +28,8 @@ Backend will run on http://127.0.0.1:5000
    npm install
    npm start
    ```
-2. The React app expects the Flask API at http://127.0.0.1:5000/api
+
+   Login with
+   Username:admin
+   Password:1234
+3. The React app expects the Flask API at http://127.0.0.1:5000/api
