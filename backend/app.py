@@ -4,13 +4,14 @@ from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
+
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set!")
-
 
 client = MongoClient(MONGO_URI)
 db = client["campaignDB"]
@@ -25,6 +26,10 @@ def serialize_campaign(doc):
         "Status": doc.get("Status", "Active")
     }
 
+
+@app.route("/")
+def home():
+    return "Campaign Tracker API is running!"
 
 @app.route("/api/campaigns", methods=["GET"])
 def get_campaigns():
@@ -54,6 +59,7 @@ def add_campaign():
     })
     return jsonify({"message": "Campaign added!"}), 201
 
+
 @app.route("/api/campaigns/<string:name>", methods=["PUT"])
 def update_campaign(name):
     data = request.json
@@ -62,10 +68,12 @@ def update_campaign(name):
         return jsonify({"message": "No changes made"}), 200
     return jsonify({"message": "Updated successfully"})
 
+
 @app.route("/api/campaigns/<string:name>", methods=["DELETE"])
 def delete_campaign(name):
     campaigns_collection.delete_one({"Campaign Name": name})
     return jsonify({"message": "Deleted successfully"})
+
 
 if not users_collection.find_one({"username": "admin"}):
     users_collection.insert_one({
@@ -73,6 +81,7 @@ if not users_collection.find_one({"username": "admin"}):
         "password": generate_password_hash("1234")
     })
     print("Admin user created in MongoDB")
+
 
 @app.route("/api/login", methods=["POST"])
 def login():
