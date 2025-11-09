@@ -12,12 +12,10 @@ MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set!")
 
-
 client = MongoClient(MONGO_URI)
-db = client.get_database("campaignDB")
-
-campaigns_collection = db.get_collection("campaigns")
-users_collection = db.get_collection("users")
+db = client["campaignDB"]
+campaigns_collection = db["campaigns"]
+users_collection = db["users"]
 
 
 def serialize_campaign(doc):
@@ -29,12 +27,13 @@ def serialize_campaign(doc):
     }
 
 
+@app.route("/")
+def index():
+    return "Campaign Tracker API is running! Use /api/campaigns or /api/login"
+
 
 @app.route("/api/campaigns", methods=["GET"])
 def get_campaigns():
-    if campaigns_collection is None:
-        return jsonify({"error": "Database not connected"}), 500
-
     q = request.args.get("q", "")
     docs = list(campaigns_collection.find({}))
     results = [serialize_campaign(d) for d in docs]
@@ -51,13 +50,9 @@ def get_campaigns():
 
 @app.route("/api/campaigns", methods=["POST"])
 def add_campaign():
-    if campaigns_collection is None:
-        return jsonify({"error": "Database not connected"}), 500
-
     data = request.json
     if not data.get("Campaign Name"):
         return jsonify({"error": "Campaign Name required"}), 400
-
     campaigns_collection.insert_one({
         "Campaign Name": data.get("Campaign Name"),
         "Client Name": data.get("Client Name"),
@@ -69,9 +64,6 @@ def add_campaign():
 
 @app.route("/api/campaigns/<string:name>", methods=["PUT"])
 def update_campaign(name):
-    if campaigns_collection is None:
-        return jsonify({"error": "Database not connected"}), 500
-
     data = request.json
     result = campaigns_collection.update_one({"Campaign Name": name}, {"$set": data})
     if result.modified_count == 0:
@@ -81,28 +73,19 @@ def update_campaign(name):
 
 @app.route("/api/campaigns/<string:name>", methods=["DELETE"])
 def delete_campaign(name):
-    if campaigns_collection is None:
-        return jsonify({"error": "Database not connected"}), 500
-
     campaigns_collection.delete_one({"Campaign Name": name})
     return jsonify({"message": "Deleted successfully"})
 
 
-
-if users_collection is not None:
-    if not users_collection.find_one({"username": "admin"}):
-        users_collection.insert_one({
-            "username": "admin",
-            "password": generate_password_hash("1234")
-        })
-        print("Admin user created in MongoDB")
-
+if not users_collection.find_one({"username": "admin"}):
+    users_collection.insert_one({
+        "username": "admin",
+        "password": generate_password_hash("1234")
+    })
+    print("Admin user created in MongoDB")
 
 @app.route("/api/login", methods=["POST"])
 def login():
-    if users_collection is None:
-        return jsonify({"error": "Database not connected"}), 500
-
     data = request.json or {}
     username = data.get("username")
     password = data.get("password")
@@ -111,8 +94,6 @@ def login():
     if user and check_password_hash(user["password"], password):
         return jsonify({"success": True})
     return jsonify({"success": False}), 401
-
-
 
 
 if __name__ == "__main__":
