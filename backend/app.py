@@ -3,11 +3,14 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-from pymongo import MongoClient
+
+app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set!")
+
 
 client = MongoClient(MONGO_URI)
 db = client["campaignDB"]
@@ -21,6 +24,7 @@ def serialize_campaign(doc):
         "Start Date": doc.get("Start Date"),
         "Status": doc.get("Status", "Active")
     }
+
 
 @app.route("/api/campaigns", methods=["GET"])
 def get_campaigns():
@@ -84,6 +88,5 @@ def login():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-
     debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
     app.run(host="0.0.0.0", port=port, debug=debug_mode)
