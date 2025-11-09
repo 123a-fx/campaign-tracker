@@ -3,11 +3,9 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from pymongo import MongoClient
 
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-MONGO_URI = os.getenv("MONGO_URI")  
+MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set!")
 
