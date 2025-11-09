@@ -1,26 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
-
-load_dotenv()
-
-
 app = Flask(__name__)
-
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+MONGO_URI = os.getenv("MONGO_URI")  
+if not MONGO_URI:
+    raise ValueError("MONGO_URI environment variable is not set!")
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI)
 db = client["campaignDB"]
-collection = db["campaigns"]
+campaigns_collection = db["campaigns"]
+users_collection = db["users"]
 
-
-def serialize(doc):
+def serialize_campaign(doc):
     return {
         "Campaign Name": doc.get("Campaign Name"),
         "Client Name": doc.get("Client Name"),
@@ -31,8 +27,9 @@ def serialize(doc):
 @app.route("/api/campaigns", methods=["GET"])
 def get_campaigns():
     q = request.args.get("q", "")
-    docs = list(collection.find({}))
-    results = [serialize(d) for d in docs]
+    docs = list(campaigns_collection.find({}))
+    results = [serialize_campaign(d) for d in docs]
+
     if q:
         q_lower = q.lower()
         results = [
@@ -47,7 +44,7 @@ def add_campaign():
     data = request.json
     if not data.get("Campaign Name"):
         return jsonify({"error": "Campaign Name required"}), 400
-    collection.insert_one({
+    campaigns_collection.insert_one({
         "Campaign Name": data.get("Campaign Name"),
         "Client Name": data.get("Client Name"),
         "Start Date": data.get("Start Date"),
@@ -58,19 +55,15 @@ def add_campaign():
 @app.route("/api/campaigns/<string:name>", methods=["PUT"])
 def update_campaign(name):
     data = request.json
-    result = collection.update_one({"Campaign Name": name}, {"$set": data})
+    result = campaigns_collection.update_one({"Campaign Name": name}, {"$set": data})
     if result.modified_count == 0:
         return jsonify({"message": "No changes made"}), 200
     return jsonify({"message": "Updated successfully"})
 
 @app.route("/api/campaigns/<string:name>", methods=["DELETE"])
 def delete_campaign(name):
-    collection.delete_one({"Campaign Name": name})
+    campaigns_collection.delete_one({"Campaign Name": name})
     return jsonify({"message": "Deleted successfully"})
-
-
-users_collection = db["users"]
-
 
 if not users_collection.find_one({"username": "admin"}):
     users_collection.insert_one({
@@ -90,8 +83,9 @@ def login():
         return jsonify({"success": True})
     return jsonify({"success": False}), 401
 
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
