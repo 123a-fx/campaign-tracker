@@ -10,13 +10,21 @@ export default function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [q, setQ] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
-    const res = await getCampaigns(q);
-    setCampaigns(res.data || []);
+    setLoading(true);
+    try {
+      const res = await getCampaigns(q);
+      setCampaigns(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch campaigns", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(()=>{ fetchData(); }, [refreshFlag, q]);
+  useEffect(() => { fetchData(); }, [refreshFlag, q]);
 
   if(!loggedIn){
     return (
@@ -29,20 +37,29 @@ export default function App() {
 
   return (
     <div className="container">
-      <header>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Campaign Tracker</h1>
         <div>
-          <input className="search" placeholder="Search campaigns..." value={q} onChange={e=>setQ(e.target.value)} />
-          <button onClick={()=>{ setRefreshFlag(f=>f+1) }}>Refresh</button>
+          <input
+            className="search"
+            placeholder="Search campaigns..."
+            value={q}
+            onChange={e=>setQ(e.target.value)}
+          />
+          <button onClick={()=>setRefreshFlag(f=>f+1)}>Refresh</button>
         </div>
       </header>
 
       <Dashboard campaigns={campaigns} />
 
-      <div style={{display:'grid', gridTemplateColumns: '1fr 2fr', gap: 12}}>
-        <CampaignForm onAdded={()=>setRefreshFlag(f=>f+1)} />
-        <CampaignList campaigns={campaigns} onRefetch={()=>setRefreshFlag(f=>f+1)} />
-      </div>
+      {loading ? (
+        <p>Loading campaigns...</p>
+      ) : (
+        <div style={{display:'grid', gridTemplateColumns: '1fr 2fr', gap: 12}}>
+          <CampaignForm onAdded={()=>setRefreshFlag(f=>f+1)} />
+          <CampaignList campaigns={campaigns} onRefetch={()=>setRefreshFlag(f=>f+1)} />
+        </div>
+      )}
     </div>
   );
 }
